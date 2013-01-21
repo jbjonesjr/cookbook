@@ -1,0 +1,134 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Sorting complex models</title>
+    <link rel="stylesheet" type="text/css" href="http://dev.sencha.com/deploy/ext-4.0.0/resources/css/ext-all.css"/>
+    <link rel="stylesheet" type="text/css" href="http://dev.sencha.com/deploy/ext-4.0.0/examples/shared/example.css"/>
+    <script type="text/javascript" src="http://dev.sencha.com/deploy/ext-4.0.0/bootstrap.js"></script>
+
+    <script type="text/javascript">
+        Ext.Loader.setConfig({enabled: true});
+
+        Ext.require([
+            'Ext.data.*',
+            'Ext.grid.*',
+            'Ext.util.*'
+        ]);
+
+        Ext.apply(Ext.data.SortTypes, {
+            asValueObjectString: function (obj) {
+                return obj.value;
+            }
+        });
+
+        Ext.apply(Ext.data.SortTypes, {
+            asValueObjectInt: function (obj) {
+                return obj.value;
+            }
+        });
+
+        Ext.onReady(function () {
+
+            function createFakeData() {
+
+                var data = [];
+                data.push([
+                    {key: {value: "name", foo: false}, value: {value: "Jamie Jones", foo: false}},
+                    {key: {value: "age", foo: false}, value: {value: "33", foo: false}}
+                ]);
+                data.push([
+                    {key: {value: "name", foo: false}, value: {value: "Andrew Garcia", foo: false}},
+                    {key: {value: "age", foo: false}, value: {value: "45", foo: false}}
+                ]);
+                data.push([
+                    {key: {value: "name", foo: false}, value: {value: "Chris Bruun", foo: false}},
+                    {key: {value: "age", foo: false}, value: {value: "66", foo: false}}
+                ]);
+                data.push([
+                    {key: {value: "name", foo: false}, value: {value: "Steve Hartman", foo: false}},
+                    {key: {value: "age", foo: false}, value: {value: "80", foo: false}}
+                ]);
+
+                return data;
+            }
+
+            // create the data store
+            Ext.define('Person', {
+                extend: 'Ext.data.Model',
+                fields: [
+                    {name: 'name', sortType: 'asValueObjectString'},
+                    {name: 'age', sortType: 'asValueObjectInt'}
+                ]
+            });
+
+            store = Ext.create('Ext.data.Store', {
+                model: 'Person',
+                proxy: {
+                    type: 'memory',
+                    reader: {
+                        type: 'array'
+                    }
+                },
+                autoLoad: false
+            });
+
+            Ext.Array.each(createFakeData(), function (person, idx) {
+                var prsn = Ext.create("Person", {});
+                Ext.Array.each(person, function (dtls, i) {
+                    prsn.set(dtls.key.value, dtls.value);
+                });
+                store.add(prsn);
+            });
+
+            // create the Grid
+            grid = Ext.create('Ext.grid.Panel', {
+                store: store,
+                columns: [
+                    {
+                        text: 'Name',
+                        flex: 1,
+                        sortable: true,
+                        dataIndex: 'name',
+                        xtype: "templatecolumn",
+                        tpl: new Ext.XTemplate("{[ this.getValue(values.name)]}", {
+                            getValue: function (type) {
+                                return type.value;
+                            }
+                        })
+                    },
+                    {
+                        text: 'Age',
+                        width: 180,
+                        sortable: true,
+                        dataIndex: 'age',
+                        xtype: "templatecolumn",
+                        tpl: new Ext.XTemplate("{[ this.getValue(values.age)]}", {
+                            getValue: function (type) {
+                                return type.value;
+                            }
+                        })
+                    }
+                ],
+                stripeRows: true,
+                height: 350,
+                width: 600,
+                title: 'Array Grid',
+                renderTo: 'sort-grid-example'
+
+            });
+        });
+    </script>
+</head>
+<body>
+<h1>Complex Model sorting example</h1>
+
+<p style="width:800px;">This example shows how to sort a grid by a complex model field. This can be a field that holds an array, object, or
+    something else.</p>
+
+<p style="width:800px;">This is showing a way forward to solve the problem where a model field (and value) may hold more than a "primitive
+    type". It could be either an array, object, or combination field. Being able to apply a "custom sorter/sort type" to
+    the field allows you to generate the fields sort exposure the same way you generate it's value exposure.</p>
+
+<div id="sort-grid-example"></div>
+</body>
+</html>

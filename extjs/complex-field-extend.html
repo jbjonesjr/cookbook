@@ -1,0 +1,120 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Managing Complex Data Models through custom fields</title>
+    <link rel="stylesheet" type="text/css" href="http://dev.sencha.com/deploy/ext-4.0.0/resources/css/ext-all.css"/>
+    <link rel="stylesheet" type="text/css" href="http://dev.sencha.com/deploy/ext-4.0.0/examples/shared/example.css"/>
+    <script type="text/javascript" src="http://dev.sencha.com/deploy/ext-4.0.0/bootstrap.js"></script>
+
+    <script type="text/javascript">
+        Ext.Loader.setConfig({enabled: true});
+
+        Ext.require([
+            'Ext.data.*',
+            'Ext.grid.*',
+            'Ext.util.*'
+        ]);
+
+        Ext.define('ComplexField', {
+            extend: 'Ext.data.Field',
+            convert: function (v, r) {
+                return v.value;
+            }
+        });
+
+        Ext.onReady(function () {
+
+            function createFakeData() {
+
+                var data = [];
+                data.push([
+                    {key: {value: "name", foo: false}, value: {value: "Jamie Jones", foo: false}},
+                    {key: {value: "age", foo: false}, value: {value: "33", foo: false}}
+                ]);
+                data.push([
+                    {key: {value: "name", foo: false}, value: {value: "Andrew Garcia", foo: false}},
+                    {key: {value: "age", foo: false}, value: {value: "45", foo: false}}
+                ]);
+                data.push([
+                    {key: {value: "name", foo: false}, value: {value: "Chris Bruun", foo: false}},
+                    {key: {value: "age", foo: false}, value: {value: "66", foo: false}}
+                ]);
+                data.push([
+                    {key: {value: "name", foo: false}, value: {value: "Steve Hartman", foo: false}},
+                    {key: {value: "age", foo: false}, value: {value: "80", foo: false}}
+                ]);
+
+                return data;
+            }
+
+            // create the data store
+            Ext.define('Person', {
+                extend: 'Ext.data.Model',
+                fields: [
+                    Ext.create("ComplexField", {name: 'name'}),
+                    Ext.create("ComplexField", {name: 'age' })
+                ]
+            });
+
+            store = Ext.create('Ext.data.Store', {
+                model: 'Person',
+                proxy: {
+                    type: 'memory',
+                    reader: {
+                        type: 'array'
+                    }
+                },
+                autoLoad: false
+            });
+
+            Ext.Array.each(createFakeData(), function (person, idx) {
+                var prsn = Ext.create("Person", {});
+                Ext.Array.each(person, function (dtls, i) {
+                    prsn.set(dtls.key.value, dtls.value);
+                });
+                store.add(prsn);
+            });
+
+            // create the Grid
+            grid = Ext.create('Ext.grid.Panel', {
+                store: store,
+                columns: [
+                    {
+                        text: 'Name',
+                        flex: 1,
+                        sortable: true,
+                        dataIndex: 'name'
+                    },
+                    {
+                        text: 'Age',
+                        width: 180,
+                        sortable: true,
+                        dataIndex: 'age'
+                    }
+                ],
+                stripeRows: true,
+                height: 350,
+                width: 600,
+                title: 'Array Grid',
+                renderTo: 'sort-grid-example'
+
+            });
+        });
+    </script>
+</head>
+<body>
+<h1>Complex Model Definition example using custom fields</h1>
+
+<p style="width:800px;">This example shows how to populate a model with an extended field definition that better handles
+    a complex data model that can contain an array,
+    object, or something else.</p>
+
+<p style="width:800px;">This is showing a simpler way forward to solve the problem where a model field (and value) are
+    being populated by something more complex than a key value pair. Extjs is meant to operate on simple fields, and
+    therefore if you hold anything other, sorting, editing, and more start to fall apart. By extending the field object,
+    you can in a single place encapsulate the techniques needed to handle this complex data. This is a cleaner way to
+    extend multiple fields.</p>
+
+<div id="sort-grid-example"></div>
+</body>
+</html>
