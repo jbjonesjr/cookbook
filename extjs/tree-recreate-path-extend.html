@@ -1,0 +1,229 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Managing complex data models through field converters</title>
+<link rel="stylesheet" type="text/css" href="http://dev.sencha.com/deploy/ext-4.0.0/resources/css/ext-all.css"/>
+<link rel="stylesheet" type="text/css" href="http://dev.sencha.com/deploy/ext-4.0.0/examples/shared/example.css"/>
+<script type="text/javascript" src="http://dev.sencha.com/deploy/ext-4.0.0/bootstrap.js"></script>
+
+<script type="text/javascript">
+Ext.Loader.setConfig({enabled: true});
+
+Ext.require([
+    'Ext.tree.*',
+    'Ext.data.*',
+    'Ext.layout.container.HBox',
+    'Ext.window.MessageBox'
+]);
+
+
+Ext.onReady(function () {
+
+
+    var folderStore = new Ext.data.TreeStore({
+        root: {
+            text: 'Root 2',
+            expanded: true,
+            children: [
+                {
+                    id: 'f1',
+                    text: 'Folder 1',
+                    children: [
+                        {
+                            id: 'f1sb1',
+                            text: 'Sub Folder 1',
+                            children: [
+                                {
+                                    id: 'f1sb11',
+                                    text: 'Sub Folder 1-1',
+                                    children: [],
+                                    expanded: false
+                                },
+                                {
+                                    id: 'f1sb12',
+                                    text: 'Sub Folder 1-2',
+                                    children: [],
+                                    expanded: false
+                                }
+                            ],
+                            expanded: false
+                        },
+                        {
+                            id: 'f1sb2',
+                            text: 'Sub Folder 2',
+                            children: [
+                                {
+                                    id: 'f1sb21',
+                                    text: 'Sub Folder 2-1',
+                                    children: [
+                                        {
+                                            id: 'f1sb211',
+                                            text: 'Sub Folder 2-1-1',
+                                            children: [],
+                                            expanded: false
+                                        }
+                                    ],
+                                    expanded: false
+                                }
+                            ],
+                            expanded: false
+                        }
+                    ],
+                    expanded: true
+                },
+                {
+                    id: 'f2',
+                    text: 'Folder 2',
+                    children: [
+                        {
+                            id: 'f2sb1',
+                            text: 'Child Folder',
+                            children: [],
+                            expanded: false
+                        },
+                        {
+                            id: 'f2sb2',
+                            text: 'Sub Folder 1',
+                            children: [
+                                {
+                                    id: 'f2sb21',
+                                    text: 'Sub Folder 1',
+                                    children: [],
+                                    expanded: false
+                                }
+                            ],
+                            expanded: false
+                        }
+                    ],
+                    expanded: true
+                }
+            ]
+        }
+    });
+
+    Ext.define("statetreepanel", {
+                extend: "Ext.tree.Panel",
+                alias: "widget.statetreepanel",
+                savedState: [],
+                saveState: function () {
+                    var me = this;
+
+                    me.savedState = [];
+                    Ext.Array.each(me.getTreeNodes(), function (itm, idx) {
+                        if (itm.get("expanded") == true) {
+                            if (itm.getId() == "root") {
+                                //    console.log("Root Node", itm.getId());
+                            } else {
+                                //    console.log("Good Node", itm);
+                                //    console.log("Good Node Id", itm.getId());
+                                me.savedState.push(itm.getId());
+                            }
+                        }
+                    });
+                },
+                restoreState: function () {
+                    var me = this;
+
+                    Ext.each(me.savedState, function (id) {
+                        node = me.getStore().getNodeById(id);
+                        if (node) {
+                            node.bubble(function (node) {
+                                node.expand()
+                            });
+                        }
+                    });
+                },
+                getTreeNodes: function () {
+                    var me = this;
+
+                    return me.getStore().tree.flatten();
+                }
+            }
+    );
+
+    new Ext.panel.Panel({
+        renderTo: 'tree-div-example',
+        width: 300,
+        height: 200,
+        layout: {
+            type: 'hbox',
+            align: 'stretch'
+        },
+        defaultType: 'statetreepanel',
+        defaults: {
+            rootVisible: false,
+            flex: 1
+        },
+        savedState: [],
+        items: [
+            {
+                title: 'Folder Tree',
+                store: folderStore,
+                tbar: [
+                    {
+                        text: "Save State",
+                        listeners: {
+                            click: function (btn, evt, cbck) {
+                                btn.up(".statetreepanel").saveState();
+                            }
+                        }
+                    },
+                    {
+                        text: "Restore State",
+                        listeners: {
+                            click: function (btn, evt, cbck) {
+                                btn.up(".statetreepanel").restoreState();
+
+                            }
+                        }
+                    },
+                    {
+                        text: "Reset",
+                        listeners: {
+                            click: function (btn, evt, cbck) {
+                                btn.up(".treepanel").collapseAll();
+                            }
+                        }
+                    }
+                ],
+                viewConfig: {
+                    plugins: {
+                        ptype: 'treeviewdragdrop',
+                        enableDrag: true,
+                        enableDrop: true,
+                        appendOnly: true
+                    },
+                    listeners: {
+                        nodedragover: function (targetNode, position, dragData) {
+                            var rec = dragData.records[0],
+                                    isFirst = targetNode.isFirst(),
+                                    canDropFirst = rec.get('canDropOnFirst'),
+                                    canDropSecond = rec.get('canDropOnSecond');
+
+                            return isFirst ? canDropFirst : canDropSecond;
+                        },
+                        drop: function (node, data, dropRec, dropPosition) {
+                            var dropOn = dropRec ? ' ' + dropPosition + ' ' + dropRec.get('text') : ' on empty view';
+                            Ext.example.msg("Drag from right to left", 'Dropped ' + data.records[0].get('text') + dropOn);
+                        }
+                    }
+                }
+            }
+        ]
+    });
+
+
+});
+</script>
+</head>
+<body>
+<h1>Tree State Save and Restore (Extended Tree Panel ) Example</h1>
+
+<p style="width:800px;">This example shows how to augment a cots ext tree panel to be able to store and retrieve it's
+    state. This state is only stored locally, but could be persisted as well.</p>
+
+<p style="width:800px;">Inspiration taken from https://github.com/AlexTiTanium/ExtJsStatefulTree/</p>
+
+<div id="tree-div-example"></div>
+</body>
+</html>
