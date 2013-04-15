@@ -1,0 +1,130 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Buffered Store complex store</title>
+    <link rel="stylesheet" type="text/css" href="http://docs.sencha.com/ext-js/4-1/extjs-build/resources/css/ext-all.css"/>
+    <link rel="stylesheet" type="text/css" href="http://docs.sencha.com/ext-js/4-1/extjs-build/examples/shared/example.css"/>
+    <script type="text/javascript" src="http://docs.sencha.com/ext-js/4-1/extjs-build/ext-all-dev.js"></script>
+
+    <script type="text/javascript">
+        Ext.Loader.setConfig({enabled: true});
+
+        Ext.require([
+            'Ext.data.*',
+            'Ext.grid.*',
+            'Ext.util.*'
+        ]);
+
+        Ext.apply(Ext.data.SortTypes, {
+            asValueObjectString: function (obj) {
+                return obj.value;
+            }
+        });
+
+        Ext.apply(Ext.data.SortTypes, {
+            asValueObjectInt: function (obj) {
+                return obj.value;
+            }
+        });
+
+        Ext.onReady(function () {
+
+            function createFakeData() {
+
+                var data = [];
+                for(var counter = 0; counter < 2000; counter ++){
+                data.push(
+                    {key:"name" + counter, data: "foo"}
+                );
+
+                }
+                return data;
+            }
+
+            var randomSelection = function(){
+                var rows = grid.store.pageMap.first.value;
+                var selected = [];
+                Ext.Array.each(rows, function(itm, idx){
+                    var seed = Math.random();
+                    if(seed > .1 && seed < .4){
+                        selected.push(itm);
+                    }
+                });
+                grid.selModel.select(selected, true, false);
+
+            };
+
+            // create the data store
+            Ext.define('buf_data', {
+                extend: 'Ext.data.Model',
+                fields: [
+                    {name: 'key'},
+                    {name: 'data'}
+                ]
+            });
+
+            store = Ext.create('Ext.data.Store', {
+                model: 'buf_data',
+                buffered:true,
+                pageSize: 5000,
+                proxy: {
+                    type: 'memory',
+                    data:createFakeData(),
+                    reader: {
+                        type: 'json'
+                    }
+                },
+                autoLoad: true,
+                listeners:{
+                    load:function(){
+                        randomSelection();
+                    }
+                }
+            });
+
+
+            // create the Grid
+            grid = Ext.create('Ext.grid.Panel', {
+                store: store,
+                selModel: Ext.create("Ext.selection.RowModel",{
+                mode:"MULTI",
+                pruneRemoved:false
+                }),
+                tbar:[
+                    {
+                        xtype:"button",
+                        text:"reload grid",
+                        handler:function(btn, e, eOpts){
+                            console.log("button click");
+                            console.log(btn.up(".grid").store);
+                        }
+                    }],
+                columns: [
+                    {
+                        text: 'key',
+                        flex: 1,
+                        dataIndex: 'key'
+                    },
+                    {
+                        text: 'data',
+                        width: 180,
+                        dataIndex: 'data'
+                    }
+                ],
+                stripeRows: true,
+                height: 350,
+                width: 600,
+                title: 'Buffered Grid',
+                renderTo: 'buffered-grid-example'
+            });
+        });
+    </script>
+</head>
+<body>
+<h1>Buffered Grid with select on reload example</h1>
+
+<p style="width:800px;">This example shows how to have a buffered grid that persists it's selection model across reloads.</p>
+
+<div id="buffered-grid-example"></div>
+</body>
+</html>
