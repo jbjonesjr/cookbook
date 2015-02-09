@@ -9,21 +9,19 @@
 <script type="text/javascript">
 Ext.Loader.setConfig({enabled: true});
 Ext.require([
-    'Ext.tree.*',
-    'Ext.data.*',
-    'Ext.layout.container.HBox',
-    'Ext.window.MessageBox'
+    'Ext.form.*'
 ]);
 Ext.onReady(function () {  
      Ext.define('helptextfield', {
          extend:"Ext.form.field.Text",
          alias: 'widget.helptextfield',
-             getSubTplData: function() {
-me.subTplData = Ext.apply({
-    helpIcon: "<img/>"
-        }, me.subTplData);
-                 this.callParent();
-             },        
+         getSubTplData: function() {
+             var me = this;
+             me.subTplData = Ext.apply({
+                 helpIcon: "<img/>"
+             }, me.subTplData);
+             this.callParent();
+         },        
          fieldSubTpl: [ // note: {id} here is really {inputId}, but {cmpId} is available
             '<input id="{id}" type="{type}" role="{role}" {inputAttrTpl}',
             ' size="1"', // allows inputs to fully respect CSS widths across all browsers
@@ -36,10 +34,10 @@ me.subTplData = Ext.apply({
             '<tpl if="tabIdx"> tabIndex="{tabIdx}"</tpl>',
             '<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>',
             ' class="{fieldCls} {typeCls} {editableCls} {inputCls}" autocomplete="off"/><img src="/help-icon.png" width=20 />new',
-        {
-            disableFormats: true
-        }
-    ]
+            {
+                disableFormats: true
+            }
+        ]
     });
     
     Ext.create('helptextfield', {
