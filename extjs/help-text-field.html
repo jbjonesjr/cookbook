@@ -1,0 +1,66 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Managing complex data models through field converters</title>
+<link rel="stylesheet" type="text/css" href="http://dev.sencha.com/deploy/ext-4.0.0/resources/css/ext-all.css"/>
+<link rel="stylesheet" type="text/css" href="http://dev.sencha.com/deploy/ext-4.0.0/examples/shared/example.css"/>
+<script type="text/javascript" src="http://dev.sencha.com/deploy/ext-4.0.0/bootstrap.js"></script>
+
+<script type="text/javascript">
+Ext.Loader.setConfig({enabled: true});
+Ext.require([
+    'Ext.tree.*',
+    'Ext.data.*',
+    'Ext.layout.container.HBox',
+    'Ext.window.MessageBox'
+]);
+Ext.onReady(function () {  
+     Ext.define('helptextfield', {
+         extend:"Ext.form.field.Text",
+         alias: 'widget.helptextfield',
+             getSubTplData: function() {
+me.subTplData = Ext.apply({
+    helpIcon: "<img/>"
+        }, me.subTplData);
+                 this.callParent();
+             },        
+         fieldSubTpl: [ // note: {id} here is really {inputId}, but {cmpId} is available
+            '<input id="{id}" type="{type}" role="{role}" {inputAttrTpl}',
+            ' size="1"', // allows inputs to fully respect CSS widths across all browsers
+            '<tpl if="name"> name="{name}"</tpl>',
+            '<tpl if="value"> value="{[Ext.util.Format.htmlEncode(values.value)]}"</tpl>',
+            '<tpl if="placeholder"> placeholder="{placeholder}"</tpl>',
+            '{%if (values.maxLength !== undefined){%} maxlength="{maxLength}"{%}%}',
+            '<tpl if="readOnly"> readonly="readonly"</tpl>',
+            '<tpl if="disabled"> disabled="disabled"</tpl>',
+            '<tpl if="tabIdx"> tabIndex="{tabIdx}"</tpl>',
+            '<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>',
+            ' class="{fieldCls} {typeCls} {editableCls} {inputCls}" autocomplete="off"/><img src="/help-icon.png" width=20 />new',
+        {
+            disableFormats: true
+        }
+    ]
+    });
+    
+    Ext.create('helptextfield', {
+        renderTo: "text-field-example",
+        fieldLabel: 'Field',
+        labelWidth:40,
+        width:200,
+        fieldStyle:{width:"60px"},
+        helpIcon:'<img src="/#" width=20 />',
+        getHelpIcon:function(){},
+        
+    });
+});
+</script>
+</head>
+<body>
+<h1>Text field that includes a help icon/tooltip (Extended Text Field ) Example</h1>
+
+<p style="width:800px;">This example shows how to augment a cots ext text field  to be able to display a help icon and a tooltip on 
+    hover.</p>
+
+<div id="text-field-example"></div>
+</body>
+</html>
